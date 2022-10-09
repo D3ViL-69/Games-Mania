@@ -9,6 +9,6 @@ To view the admin panel/all records of user logins in your program, you will hav
 Hope you will enjoy Playing the GAMES !!!
 
 for further queries you can contact me on discord - https://discord.com/invite/HWENPxy
-or you can also contact me on instagram - @d3vil_69
+or you can also contact me on instagram - https://www.instagram.com/d3vil_69
 
 Thank You ...
