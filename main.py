@@ -10,18 +10,21 @@ from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image
 import tkinter.font as tkFont
+from tkinter import messagebox
 
 root = Tk()
 root.title("Games Mania")
 
-#TODO: Mysql initializaton
-import mysql.connector
-mydb = mysql.connector.connect(
-    host = "localhost",
-    user = "root", 
-    password = "",
-    database = "games"
-)
+# #TODO: Mysql initializaton
+# import mysql.connector
+# mydb = mysql.connector.connect(
+#     host = "localhost",
+#     user = "root", 
+#     password = "",
+#     database = "games"
+# )
+import sqlite3
+mydb = sqlite3.connect("database.db")
 mycursor = mydb.cursor()
 
 # TODO: VARIABLES
@@ -31,8 +34,12 @@ uservalue = StringVar()
 passvalue = StringVar()
 
 new_uservalue = StringVar()
+new_mobvalue = StringVar()
 new_passvalue = StringVar()
 re_passvalue = StringVar() 
+
+s_ques = StringVar()
+s_ans = StringVar()
 
 font1 = tkFont.Font(family = "Rockwell Extra Bold", size = 40, weight = "bold", underline = 1)
 font2 = tkFont.Font(family = "Sans Serif", size = 14, weight = "bold")
@@ -67,10 +74,6 @@ bg4 = Image.open("pictures/car_fg.jpg")
 bg4 = bg4.resize((win_width, win_height))
 bg4 = ImageTk.PhotoImage(bg4)
 
-bg5 = Image.open("pictures/egg_fg.jpg")
-bg5 = bg5.resize((win_width, win_height))
-bg5 = ImageTk.PhotoImage(bg5)
-
 
 # Dimensions of the window 
 root.geometry(f"{win_width}x{win_height}")
@@ -87,14 +90,14 @@ def fruit_ninja(who):
     import pygame, sys
     import os
     import random
-    import mysql.connector
-    mydb = mysql.connector.connect(
-        host = "localhost",
-        user = "root", 
-        password = "",
-        database = "games"
-    )
-    mycursor = mydb.cursor()
+    # import mysql.connector
+    # mydb = mysql.connector.connect(
+    #     host = "localhost",
+    #     user = "root", 
+    #     password = "",
+    #     database = "games"
+    # )
+    # mycursor = mydb.cursor()
 
     player_lives = 3                                                #keep track of lives
     score = 0                                                       #keeps track of score
@@ -103,7 +106,7 @@ def fruit_ninja(who):
     # initialize pygame and create window
     WIDTH = 800
     HEIGHT = 500
-    FPS = 12                                                 #controls how often the gameDisplay should refresh. In our case, it will refresh every 1/12th second
+    FPS = 15                                                 #controls how often the gameDisplay should refresh. In our case, it will refresh every 1/12th second
     pygame.init()
     pygame.display.set_caption('Fruit-Ninja Game')
     gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT))   #setting game display size
@@ -180,6 +183,7 @@ def fruit_ninja(who):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    return
                 if event.type == pygame.KEYUP:
                     waiting = False
         
@@ -188,9 +192,9 @@ def fruit_ninja(who):
     game_over = True        #terminates the game While loop if more than 3-Bombs are cut
     game_running = True     #used to manage the game loop
 
-    mycursor.execute("SELECT * from `user` WHERE username = %s", (who, ))
+    mycursor.execute("SELECT * from `user` WHERE username = ?", (who, ))
     myresult = mycursor.fetchone()
-    highscore = myresult[3]
+    highscore = myresult[5]
     
     while game_running :
         if game_over :
@@ -252,7 +256,7 @@ def fruit_ninja(who):
                         score += 1
                     score_text = font.render('Score : ' + str(score), True, (255, 255, 255))
 
-                    if highscore>score:    
+                    if int(highscore)>int(score):    
                         sql = f"UPDATE `user` SET `fruit-score` = '{highscore}' WHERE `user`.`username` = '{who}'"
                         mycursor.execute(sql)
                         mydb.commit()
@@ -428,7 +432,6 @@ def pocket_tanks():
                 # print(event)
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
 
             game_layout_display.fill(black)
             msg_screen("Controls", white, -100, size="large")
@@ -456,7 +459,7 @@ def pocket_tanks():
             if click[0] == 1 and action != None:
                 if action == "quit":
                     pygame.quit()
-                    quit()
+
 
                 if action == "controls":
                     game_ctrls()
@@ -484,13 +487,13 @@ def pocket_tanks():
 
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
+
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_c:
                         paused = False
                     elif event.key == pygame.K_q:
                         pygame.quit()
-                        quit()
+                        
 
             clock.tick(5)
 
@@ -507,7 +510,7 @@ def pocket_tanks():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
+                    
 
             startPoint = x, y
 
@@ -542,7 +545,7 @@ def pocket_tanks():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
+                    
 
             # print(startShell[0],startShell[1])
             pygame.draw.circle(game_layout_display, red, (startShell[0], startShell[1]), 5)
@@ -613,7 +616,7 @@ def pocket_tanks():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
-                        quit()
+                        
 
                 # pygame.draw.circle(game_layout_display, red, (startShell[0],startShell[1]),5)
 
@@ -650,7 +653,7 @@ def pocket_tanks():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
+                    
 
             pygame.draw.circle(game_layout_display, red, (startShell[0], startShell[1]), 5)
 
@@ -717,7 +720,7 @@ def pocket_tanks():
                 # print(event)
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
+                    
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_c:
@@ -725,7 +728,7 @@ def pocket_tanks():
                     elif event.key == pygame.K_q:
 
                         pygame.quit()
-                        quit()
+                        
 
             game_layout_display.fill(black)
             msg_screen("Welcome to Tanks War!", white, -100, size="large")
@@ -753,7 +756,6 @@ def pocket_tanks():
                 # print(event)
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
 
             game_layout_display.fill(black)
             msg_screen("Game Over", white, -100, size="large")
@@ -776,7 +778,6 @@ def pocket_tanks():
                 # print(event)
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
 
             game_layout_display.fill(black)
             msg_screen("You won!", white, -100, size="large")
@@ -976,14 +977,14 @@ def car_racing(who):
     import time
     import random
     import os
-    import mysql.connector
-    mydb = mysql.connector.connect(
-        host = "localhost",
-        user = "root", 
-        password = "",
-        database = "games"
-    )
-    mycursor = mydb.cursor()
+    # ector
+    # mydb = mysql.connector.connect(
+    #     host = "localhost",
+    #   import mysql.conn  user = "root", 
+    #     password = "",
+    #     database = "games"
+    # )
+    # mycursor = mydb.cursor()
 
 
     pygame.init()
@@ -1028,11 +1029,11 @@ def car_racing(who):
     image_background_still = pygame.image.load(os.getcwd() + '\\images/background_inv.png')
     bckgrndRect = image_background.get_rect()
 
-    welcome_1 = pygame.mixer.Sound(os.getcwd() + '\\audio/intro1.wav')
-    welcome_2 = pygame.mixer.Sound(os.getcwd() + '\\audio/intro2.wav')
-    audio_crash = pygame.mixer.Sound(os.getcwd() + '\\audio/car_crash.wav')
-    audio_ignition = pygame.mixer.Sound(os.getcwd() + '\\audio/ignition.wav')
-    pygame.mixer.music.load(os.getcwd()+'\\audio/running.wav')
+    #welcome_1 = pygame.mixer.Sound(os.getcwd() + '\\audio/intro1.wav')
+    #welcome_2 = pygame.mixer.Sound(os.getcwd() + '\\audio/intro2.wav')
+    #audio_crash = pygame.mixer.Sound(os.getcwd() + '\\audio/car_crash.wav')
+    #audio_ignition = pygame.mixer.Sound(os.getcwd() + '\\audio/ignition.wav')
+    #pygame.mixer.music.load(os.getcwd()+'\\audio/running.wav')
 
     def things_dodged(counting, highest_score, everything_speed):
             fnt = pygame.font.SysFont(None, 25)
@@ -1081,7 +1082,7 @@ def car_racing(who):
 
     def title_msg():
             animation_height=screen_height
-            pygame.mixer.Sound.play(welcome_1)
+            #pygame.mixer.Sound.play(welcome_1)
             while animation_height > -600:
                     game_layout_display.fill(white_color)
                     things(screen_width / 2 - t_width / 2, animation_height)
@@ -1089,7 +1090,7 @@ def car_racing(who):
                     pygame.display.update()
             title_message_display(0, 0, black_color)
             time.sleep(0.1)
-            pygame.mixer.Sound.play(welcome_2)
+            #pygame.mixer.Sound.play(welcome_2)
 
     def motion_texture(th_starting):
             game_layout_display.blit(texture_photo, (0, th_starting - 400))
@@ -1097,8 +1098,8 @@ def car_racing(who):
             game_layout_display.blit(texture_photo, (0, th_starting + 400))
 
     def crash_function():
-            pygame.mixer.music.stop()
-            pygame.mixer.Sound.play(audio_crash)
+            #pygame.mixer.music.stop()
+            #pygame.mixer.Sound.play(audio_crash)
             message_display_screen("YOU CRASHED", 0, 0, red_color, 0)
             while True:
                     playAgain = button("Play Again", btn_starting_x, nw_gm_y, btn_width, btn_height, greenLight_color, green_color)
@@ -1106,7 +1107,6 @@ def car_racing(who):
                     for event in pygame.event.get():
                             if event.type == pygame.QUIT or exit_game == 1 or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                                     pygame.quit()
-                                    quit()
                                     return
                             if playAgain== 1 or (event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE):
                                     looping_gameplay()
@@ -1137,7 +1137,7 @@ def car_racing(who):
                     for event in pygame.event.get():
                             if event.type == pygame.QUIT or exit_game == 1 or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                                     pygame.quit()
-                                    quit()
+                                    
                     playGame = button("New game", btn_starting_x, nw_gm_y, btn_width, btn_height, greenLight_color, green_color)
                     exit_game = button("Quit", btn_starting_x, exit_y, btn_width, btn_height, redLight_color, red_color)
                     if event.type == pygame.KEYDOWN:
@@ -1151,37 +1151,37 @@ def car_racing(who):
 
     def counting_three_two_one():
             counting = 3
-            pygame.mixer.music.pause()
-            pygame.mixer.Sound.play(audio_ignition)
+            #pygame.mixer.music.pause()
+            #pygame.mixer.Sound.play(audio_ignition)
             while counting >= 0:
                     game_layout_display.blit(image_background, bckgrndRect)
                     car(screen_width * 0.40, screen_height * 0.6, 0)
                     if counting == 0:
                             message_display_screen ("GO!", 0, 0, green_color, 0.75)
-                            pygame.mixer.music.play(-1)
+                            #pygame.mixer.music.play(-1)
                     else:
                             message_display_screen (str(counting), 0, 0, red_color, 0.75)
                     counting -= 1
             time_clock.tick(15)
 
     def gameplay_paused():
-            pygame.mixer.music.pause()
+            #pygame.mixer.music.pause()
             pause = True
             while pause:
                     for event in pygame.event.get():
                             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):  ###############or quit_game == 1
                                     pygame.quit()
-                                    quit()
+                                    
                             message_display_screen("pause", 0, 0, blue_color, 1.5)
                             if event.type == pygame.KEYDOWN:
                                     if event.key == pygame.K_SPACE:
-                                            pygame.mixer.music.unpause()
+                                            #pygame.mixer.music.unpause()
                                             return
                     pygame.display.update()
                     time_clock.tick(15)
 
     def looping_gameplay():
-            pygame.mixer.music.play(-1)
+            #pygame.mixer.music.play(-1)
             display = 0
             width_x=(screen_width * 0.4)
             height_y=(screen_height * 0.6)
@@ -1203,15 +1203,15 @@ def car_racing(who):
             gameExit = False
             counting_three_two_one()
 
-            mycursor.execute("SELECT * from `user` WHERE username = %s", (who, ))
+            mycursor.execute("SELECT * from `user` WHERE username = ?", (who, ))
             myresult = mycursor.fetchone()
-            Highscore = myresult[4]
+            Highscore = myresult[6]
 
             while not gameExit:
                     for event in pygame.event.get():
                             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                                     pygame.quit()
-                                    quit()
+                                    
                             if event.type == pygame.KEYDOWN:
                                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                                             ch_x = -10
@@ -1262,7 +1262,6 @@ def car_racing(who):
     welcome_gameplay()
     looping_gameplay()
     pygame.quit()
-    quit()
     return
 
 # to hide a widget
@@ -1280,53 +1279,67 @@ def clear_entry(*boxes):
     for item in boxes:
         item.delete(0, END)
 
-# To show register box and disappear login box: 
+# To show register box and disappear login box
 def appear_register(widget1, widget2, canvas):
     global change_button, change_text, change_message
     hide_widget(widget1)
     show_widget(widget2)
     canvas.delete(change_button, change_text, change_message)
-    change_text = canvas.create_text(640, 200, text = "REGISTER", fill="#00FFFF", font = font3)
-    change_message = canvas.create_text(430, 500, text = "Have account? ", fill="#00FFFF", font = font2)
-    change_button = canvas.create_window(860, 500, window = Button(canvas, text = "Login", font = font2, bg = "#FFFF00", command = lambda : appear_login(login_box, register_box, canvas)))
+    change_text = canvas.create_text(640, 180, text = "REGISTER", fill="#00FFFF", font = font3)
+    change_message = canvas.create_text(650, 550, text = "Have account? ", fill="#00FFFF", font = font2)
+    change_button = canvas.create_window(860, 550, window = Button(canvas, text = "Login", font = font2, bg = "#FFFF00", command = lambda : appear_login(login_box, register_box, canvas)))
 
-#To show login box and dissapearregister box
+#To show login box and dissapear register box
 def appear_login(widget1, widget2, canvas):
     global change_button, change_text, change_message
     hide_widget(widget2)
     show_widget(widget1)
     canvas.delete(change_button, change_text, change_message)
     change_text = canvas.create_text(640, 200, text = "LOGIN", fill="#00FFFF", font = font3)
-    change_message = canvas.create_text(450, 500, text = "New user, sign up", fill="#00FFFF", font = font2)
+    change_message = canvas.create_text(700, 500, text = "New user ?", fill="#00FFFF", font = font2)
     change_button = canvas.create_window(840, 500, window = Button(canvas, text = "Sign Up", font = font2, bg = "#FFFF00", command = lambda : appear_register(login_box, register_box, canvas)))
+
+'''#To show forgot box and disappear login box
+def appear_forgot(widget1, widget2, canvas):
+    global change_button, change_text, change_message
+    hide_widget(widget1)
+    show_widget(widget2)
+    canvas.delete(change_button, change_text, change_message)
+    change_text = canvas.create_text(640, 200, text = "FORGOT PASSWORD?", fill="#00FFFF", font = font3)
+    change_message = canvas.create_text(500, 500, text = "Got Password?", fill="#00FFFF", font = font2)
+    change_button = canvas.create_window(860, 500, window = Button(canvas, text = "Login", font = font2, bg = "#FFFF00", command = lambda : appear_login(login_box, register_box, canvas)))'''
+    
 
 #Function to feed the information of register to the database 
 def register():
     global current_user
-    user, pas, re_pass = new_userentry.get().strip(), new_passentry.get().strip(), re_passentry.get().strip() 
+    user, phn, pas, re_pass, sq, sa = new_userentry.get().strip(), new_mobentry.get().strip(), new_passentry.get().strip(), re_passentry.get().strip(), s_ques.get(), s_ans.get().upper()
     invalid_register.grid_forget()
-    if user and pas and re_pass:
+    if user and phn and pas and re_pass:
         if pas != re_pass:
             invalid_register.grid(row = 2, column = 2)
             return
         else:
-            sql = "SELECT username FROM user"
-            mycursor.execute(sql)
-            myresult = mycursor.fetchall()
-            result = [i[0] for i in myresult]
-            if user not in result:
-                sql = "INSERT INTO user (username, password) VALUES (%s, %s)"
-                val = (user, pas)
-                mycursor.execute(sql, val)
-                mydb.commit()
-                current_user = user
-                menu()
+            if s_ans != "":
+                sql = "SELECT username FROM user"
+                mycursor.execute(sql)
+                myresult = mycursor.fetchall()
+                result = [i[0] for i in myresult]
+                if user not in result:
+                    sql = "INSERT INTO user (username, phone, password, squestion, sanswer) VALUES (?, ?, ?, ?, ?)"
+                    val = (user, int(phn), pas, sq, sa) 
+                    mycursor.execute(sql, val)
+                    mydb.commit()
+                    current_user = user
+                    menu()
+                else:
+                    invalid_register.grid(row = 0, column = 2)
             else:
-                invalid_register.grid(row = 0, column = 2)
+                invalid_register.grid(row = 4, column = 2)
     else:
         invalid_register.grid(row = 0, column = 2)
         
-    clear_entry(new_userentry, new_passentry, re_passentry)
+    clear_entry(new_userentry, new_mobentry, new_passentry, re_passentry)
 
 # Funcion to Check Login related querry
 def login():
@@ -1348,48 +1361,49 @@ def login():
                 invalid_user.grid(row = 1, column = 2)
 
         elif user=="admin" and pas=="12345":
-            import mysql.connector
-            import tkinter  as tk 
-            #from tkinter import ttk
-
-            root = Tk()
-            root.title("Admin Panel")
-            Logo = Image.open("pictures/logo.jpg")
-            Logo = ImageTk.PhotoImage(logo)
-            root.iconphoto(False, Logo)
+            # import mysql.connector
+            import tkinter  as tk
+            from PIL import ImageTk, Image
             
             my_w = tk.Tk()
+            my_w.title("Admin Panel")
             my_w.geometry("400x250")
             my_w['bg']="#00FF00"
-            my_connect = mysql.connector.connect(
-              host="localhost",
-              user="root", 
-              passwd="",
-              database="games"
-            )
-            my_conn = my_connect.cursor()
+            # my_connect = mysql.connector.connect(
+            #     host="localhost",
+            #     user="root", 
+            #     passwd="",
+            #     database="games"
+            #     )
+            # my_conn = my_connect.cursor()
             ####### end of connection ####
 
-            e=Label(my_w,width=20,text='id',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            # e=Label(my_w,width=20,text='id',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            e=Label(my_w,width=15,text='Username',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
             e.grid(row=0,column=0)
-            e=Label(my_w,width=20,text='Username',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            e=Label(my_w,width=15,text='Password',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
             e.grid(row=0,column=1)
-            e=Label(my_w,width=20,text='Password',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            e=Label(my_w,width=15,text='Mobile No.',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
             e.grid(row=0,column=2)
-            e=Label(my_w,width=20,text='Fruit Score',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            e=Label(my_w,width=15,text='Question',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
             e.grid(row=0,column=3)
-            e=Label(my_w,width=20,text='Car score',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            e=Label(my_w,width=15,text='Answer',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
             e.grid(row=0,column=4)
-            e=Label(my_w,width=20,text='Date',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            e=Label(my_w,width=15,text='Fruit Score',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
             e.grid(row=0,column=5)
-            e=Label(my_w,width=20,text='Time',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00')
+            e=Label(my_w,width=15,text='Car Score',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
             e.grid(row=0,column=6)
+            e=Label(my_w,width=15,text='Date',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
+            e.grid(row=0,column=7)
+            e=Label(my_w,width=15,text='Time',borderwidth=2, relief='ridge',anchor='w',bg='#FFFF00', fg="#FF0000")
+            e.grid(row=0,column=8)
 
+            my_conn = mycursor
             my_conn.execute("SELECT * FROM user limit 0,10")
             i=1
             for student in my_conn: 
                 for j in range(len(student)):
-                    e = Entry(my_w, width=20, fg='blue')
+                    e = Entry(my_w, width=18, fg='blue')
                     e.configure({"background": "#FFA1FF"})
                     e.grid(row=i, column=j) 
                     e.insert(END, student[j])
@@ -1401,7 +1415,48 @@ def login():
             invalid_user.grid(row = 0, column = 2)
     clear_entry(userentry, passentry)
 
-#"------------------------------------------------------------------------------------------------------------"
+def forget():
+    def change(name, pas, ans, inp):
+        if inp.upper() == ans.upper():
+            mycursor.execute(f"update user set password = '{pas.get()}' where username = '{name.get()}'")
+            mydb.commit()
+            messagebox.showinfo(" ", f"Password changed! {name.get()}  {pas.get()}") 
+            register_screen.destroy()
+        else:
+            messagebox.showinfo(" ", "Please enter correct answer.")
+
+    def go_check(rs, name, phone):
+        answer = StringVar()
+        password = StringVar()
+        a = mycursor.execute(f"select * from user where username = '{name.get()}' and phone = '{phone.get()}'").fetchone()
+        if a:
+            ques = a[3]
+            ans = a[4]
+            Label(rs,text=f"What is your favourite {ques}").pack(pady = 10)
+            pass2=Entry(rs,textvariable=answer).pack()
+            
+            Label(rs, text = "Enter new password *").pack()
+            ent = Entry(rs, textvariable = password, show = "*").pack(pady = 10)
+
+            Button(rs,text="Change",bg="purple",fg="white",command= lambda : change(name, password, ans, answer.get())).pack(pady = 10)
+        else:
+            messagebox.showinfo("ERROR", "Wrong username or phone number! ")
+
+    name=StringVar()
+    email = StringVar()
+    register_screen=Toplevel(root)
+    register_screen.title("Forgot Password Screen")
+    register_screen.geometry("300x450")
+    Label(register_screen,text="Forgot Password",height="2",width="300").pack()
+    Label(text="").pack()
+    Label(register_screen,text="User Name *").pack()
+    name2=Entry(register_screen,textvariable=name)
+    name2.pack(pady = 10)
+    Label(register_screen,text="Mobile *").pack()
+    pass2=Entry(register_screen,textvariable=email)
+    pass2.pack(pady = 10)
+    Button(register_screen,text="GO",bg="purple",fg="white",command= lambda : go_check(register_screen, name, email)).pack(pady = 10)
+
 
 
 def menu():
@@ -1434,7 +1489,7 @@ def menu():
         fruit.grid(row = 0, column = 0)
         fruit.create_image((5, 5) , image = bg2, anchor = "nw")
         play_fruit = fruit.create_window(500, 600, window = Button(fruit, text = "PLAY", font = font3, bg = '#bc1616', borderwidth = 0, width = 10, fg = '#030931', command = lambda : fruit_ninja(current_user))) 
-        fruit.create_text((50, 50), text = "Instructions: \n*Use your mouse \n(click and drag the mouse) \nto slice the fruits \non the screen.*", font = font6, fill = "white", anchor = "nw")
+        fruit.create_text((50, 50), text = "Instructions: \n*Use your mouse \n(hover the mouse) \nto slice the fruits \non the screen.*", font = font6, fill = "white", anchor = "nw")
         mycursor.execute("SELECT `username`, `fruit-score` FROM `user` ORDER BY `fruit-score` DESC")
         myresult = mycursor.fetchall()
         my_fruit_score = None
@@ -1480,7 +1535,8 @@ def menu():
         #tank_t.pack(side = TOP, fill = X)
         #tank_v.config(command = tank_t.yview)
         #tank.create_window(800, 170, window = tank_content)
-        tank.create_text((1000, 100), text = f"Hello {current_user}, \nthe last time you played \nwas on %s \n at %s"%(DATE,TIME), font = font5, fill = "#FFFFFF", anchor = 'c')
+        tank.create_text((1000, 100), text = f"Hello {current_user} \nHope you \nenjoy", font = font5, fill = "#FFFFFF", anchor = 'c')
+        #, \nthe last time you played \nwas on %s \n at %s %(DATE,TIME)
         go_back_tank = tank.create_window(830, 600, window = Button(tank, text = 'BACK', font = font3, bg = 'brown', borderwidth = 0, width = 10, fg = 'orange', command = lambda : switch_window(tank, select_func)))
 
 
@@ -1522,9 +1578,8 @@ canvas.pack(fill = "both")
 canvas.create_image(0, 0, image = bg1, anchor = "nw")
 canvas.create_text(640, 60, text = "Games Mania", fill="#FAFA33", font = font1)
 change_text = canvas.create_text(640, 200, text = "LOGIN", fill="#00FFFF", font = font3)
-change_message = canvas.create_text(450, 500, text = "New user, Sign Up", fill="#00FFFF", font = font2)
+change_message = canvas.create_text(700, 500, text = "New user ?", fill="#00FFFF", font = font2)
 change_button = canvas.create_window(840, 500, window = Button(canvas, text = "Sign Up", font = font2, bg = "#FFFF00", command = lambda : appear_register(login_box, register_box, canvas)))
-
 
 #login box
 login_box = Frame(root, width = 500, height = 200, borderwidth = 5, relief = SUNKEN ,bg="#FFC0CB")
@@ -1541,36 +1596,49 @@ userentry.grid(row = 0, column = 1, padx = 10)
 passentry.grid(row = 1, column = 1, padx = 10)
 
 Button(login_box, text = "Login", font = font2, bg = "#FFA500", command = login ).grid(row = 2 , column = 2, pady = 10, padx = 2)
+Button(login_box, text = "Forgot Password", font = font2, bg = "#FFA500", command = forget ).grid(row = 2 , column = 0, pady = 10, padx = 2)
+
 # TODO: TO PRINT INVALID MESSAGE WHEN USER INPUT WRONG DATA 
 invalid_user = Label(login_box, text = "*invalid", font = "Sans 10", fg = "red")
 # invalid.grid(row = 0, column = 2)
 
 
-
 # Register box
 register_box = Frame(root, width = 500, height = 200, borderwidth = 5, relief = SUNKEN, bg="#FFC0CB")
-# register_box.place(anchor = "c", relx = 0.5, rely = 0.5)
+#register_box.place(anchor = "c", relx = 0.5, rely = 0.5)
 
 new_username = Label(register_box, text = "Username", fg="#0000FF", font = "Sans 15 bold", padx = 10, pady = 40, bg="#FFC0CB")
-#new_email=Label(register_box, text= "Email", fg="#0000FF", font = "Sans 15 bold", padx=10, bg="#FFC0CB")
+new_mob=Label(register_box, text= "Mobile no.", fg="#0000FF", font = "Sans 15 bold", padx=10, bg="#FFC0CB")
 new_password = Label(register_box, text = "Password", fg="#0000FF", font = "Sans 15 bold", padx = 10, bg="#FFC0CB")
 re_password = Label(register_box, text = "Confirm password", fg="#0000FF", font = "Sans 15 bold", padx = 10, bg="#FFC0CB")
+question = Label(register_box, text = "Security Question", fg = "#0000FF", font = "Sans 15 bold", padx = 10, bg="#FFC0CB")
+answer = Label(register_box, text = "Answer", fg = "#0000FF", font = "Sans 15 bold", padx = 10, bg="#FFC0CB")
 
 new_userentry = Entry(register_box, textvariable = new_uservalue, width = 40, fg = "#312e2e", font = "consolas 10")
-#new_email=Entry(register_box, textvariable = new_mailvalue, width = 40, fg = "#312e2e", font = "consolas 10")
+new_mobentry=Entry(register_box, textvariable = new_mobvalue, width = 40, fg = "#312e2e", font = "consolas 10")
 new_passentry = Entry(register_box, textvariable = new_passvalue, width = 40, fg = "#312e2e",  show = "*", font = "consolas 10" )
 re_passentry = Entry(register_box, textvariable = re_passvalue, width = 40, fg = "#312e2e", show = "*", font = "consolas 10" )
+questions = ['Food', 'Place', 'color', 'Singer', 'Animal', 'Bird', 'Sport']
+question_inp = OptionMenu(register_box, s_ques, *questions)
+s_ques.set(questions[0])
+ans_inp = Entry(register_box, textvariable = s_ans,  width = 40, fg = "#312e2e", show = "*", font = "consolas 10")
 
 new_username.grid(row = 0, column = 0)
-new_password.grid(row = 1, column = 0)
-#new_email.grid(row= , column= )
-#new_email.grid(row= , column= )
-new_userentry.grid(row = 0, column = 1, padx = 10)
-new_passentry.grid(row = 1, column = 1, padx = 10)
-re_password.grid(row = 2, column = 0)
-re_passentry.grid(row = 2, column = 1)
+new_userentry.grid(row = 0, column = 1, padx = 5)
+new_mob.grid(row = 1, column = 0)
+new_mobentry.grid(row = 1, column = 1)
+new_password.grid(row = 2, column = 0)
+new_passentry.grid(row = 2, column = 1, padx = 5)
+re_password.grid(row = 3, column = 0)
+re_passentry.grid(row = 3, column = 1)
+question.grid(row = 4, column = 0)
+question_inp.grid(row = 4, column = 1, sticky = E)
+Label(register_box, text= "What is your favourite", fg = "black", font = "Sans 12 bold", padx = 10, bg="#FFC0CB").grid(row = 4, column = 1, sticky = W)
+answer.grid(row = 5, column = 0)
+ans_inp.grid(row = 5, column = 1)
 
-Button(register_box, text = "Sign Up", font = font2, bg = "#FFA500", command = lambda : register()).grid(row = 3 , column = 2, pady = 10, padx = 2)
+Button(register_box, text = "Sign Up", font = font2, bg = "#FFA500", command = lambda : register()).grid(row = 6 , column = 2, pady = 10, padx = 2)
+
 # TODO: TO PRINT INVALID MESSAGE WHEN USER INPUT WRONG DATA 
 invalid_register = Label(register_box, text = "*invalid", font = "Sans 10", fg = "red")
 # invalid.grid(row = 0, column = 2)
